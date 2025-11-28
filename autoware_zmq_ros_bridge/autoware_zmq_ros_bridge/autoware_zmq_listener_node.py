@@ -88,7 +88,7 @@ class ZMQCapnpBridgeNode(Node):
             'vEgo': 0.0,
             'gear': 'park',
             'turn_signal': 0,
-            'hazard_lights': False,
+            'hazard_lights': 1,
             'yaw_rate': 0.0,
             'control_mode': 1,
             'steeringPressed': False,
@@ -270,14 +270,15 @@ class ZMQCapnpBridgeNode(Node):
         if car_state.leftBlinker:
             self.state_signals['turn_signal'] = 2
             if car_state.rightBlinker:
-                self.state_signals['hazard_lights'] = True
+                self.state_signals['hazard_lights'] = 2
             else:
-                self.state_signals['hazard_lights'] = False
+                self.state_signals['hazard_lights'] = 1
         elif car_state.rightBlinker:
             self.state_signals['turn_signal'] = 3
-            self.state_signals['hazard_lights'] = False
+            self.state_signals['hazard_lights'] = 1
         else:
             self.state_signals['turn_signal'] = 1
+            self.state_signals['hazard_lights'] = 1
         # self.state_signals['turn_signal'] = car_state.leftBlinker or car_state.rightBlinker
         # self.state_signals['hazard_lights'] = car_state.leftBlinker and car_state.rightBlinker
         self.state_signals['steering_angle_deg'] = car_state.steeringAngleDeg
@@ -336,7 +337,7 @@ class ZMQCapnpBridgeNode(Node):
     def publish_hazard_lights(self):
         msg = HazardLightsReport()
         msg.stamp = self.get_clock().now().to_msg()
-        msg.report = bool(self.state_signals['hazard_lights'])
+        msg.report = self.state_signals['hazard_lights']
         self.hazard_pub.publish(msg)
 
     def publish_control_mode(self):
@@ -375,7 +376,7 @@ class ZMQCapnpBridgeNode(Node):
             event.carControl.enabled = self.control_signals['enable']
             event.carControl.latActive = self.control_signals['latActive']
             event.carControl.longActive = self.control_signals['longActive']
-            event.carControl.actuators.longControlState = self.control_signals['longControlState']
+            event.carControl.actuators.longControlState = 0#self.control_signals['longControlState']
 
             event.carControl.hudControl.leadDistanceBars = 2
 
