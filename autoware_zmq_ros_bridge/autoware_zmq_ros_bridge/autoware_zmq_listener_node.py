@@ -4,6 +4,8 @@ from autoware_vehicle_msgs.msg import GearCommand, HazardLightsCommand, TurnIndi
 from tier4_vehicle_msgs.msg import ActuationCommandStamped, VehicleEmergencyStamped
 from autoware_control_msgs.msg import Control
 from autoware_vehicle_msgs.msg import GearReport, SteeringReport, VelocityReport, TurnIndicatorsReport, HazardLightsReport, ControlModeReport
+from panda_msgs.msg import CarState as PandaCarState
+from .car_state_mapper import fill_panda_car_state_from_capnp
 import zmq
 import threading
 import capnp
@@ -32,6 +34,9 @@ class ZMQCapnpBridgeNode(Node):
         self.manual_override = False
 
         self.openpilot_disabled_time = None
+
+        # Cache for latest PandaCarState built from capnp carState
+        self.latest_panda_car_state = None
 
         # Load Cap'n Proto schema
         if capnp_dir:
@@ -122,6 +127,7 @@ class ZMQCapnpBridgeNode(Node):
         self.turn_pub = self.create_publisher(TurnIndicatorsReport, '/vehicle/status/turn_indicators_status', 10)
         self.vel_pub = self.create_publisher(VelocityReport, '/vehicle/status/velocity_status', 10)
         self.openpilot_state_pub = self.create_publisher(Int32, '/vehicle/openpilot/state', 10)
+        self.car_state_pub = self.create_publisher(PandaCarState, '/vehicle/status/vehicle_state', 10)
 
         # ROS subscribers
         #self.create_subscription(ActuationCommandStamped, '/control/command/actuation_cmd', self.actuation_cb, 10)
@@ -288,6 +294,13 @@ class ZMQCapnpBridgeNode(Node):
         self.state_signals['cruiseEnabled'] = car_state.cruiseState.enabled
         self.state_signals['accFaulted'] = car_state.accFaulted
 
+        # Build and cache latest PandaCarState built from this capnp message
+        msg = PandaCarState()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = "base_link"
+        fill_panda_car_state_from_capnp(car_state, msg)
+        self.latest_panda_car_state = msg
+
     def publish_ros_messages(self):
         self.publish_velocity()
         self.publish_steering()
@@ -296,6 +309,16 @@ class ZMQCapnpBridgeNode(Node):
         self.publish_hazard_lights()
         self.publish_control_mode()
         self.publish_openpilot_state()
+        self.publish_vehicle_state()
+
+    def publish_vehicle_state(self):
+        if self.latest_panda_car_state is None:
+            return
+
+        msg = self.latest_panda_car_state
+        # Use current time for header stamp to reflect publish time
+        msg.header.stamp = self.get_clock().now().to_msg()
+        self.car_state_pub.publish(msg)
 
     def publish_openpilot_state(self):
         msg = Int32()

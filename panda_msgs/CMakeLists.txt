@@ -30,6 +30,12 @@ endif()
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/PandaHealthStatus.msg"
   "msg/CANMessage.msg"
+  "msg/WheelSpeeds.msg"
+  "msg/CruiseState.msg"
+  "msg/GearShifter.msg"
+  "msg/ButtonEvent.msg"
+  "msg/CarState.msg"
+  "msg/OnroadEventDeprecated.msg"
   DEPENDENCIES std_msgs
 )
 

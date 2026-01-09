@@ -1,5 +1,5 @@
 autoware_zmq_capnp_bridge_node:
   ros__parameters:
-    capnp_dir: "/home/carpc/Software/saurabh/priuspilot/cereal/"  # ← replace with actual path
+    capnp_dir: "/home/tue20235622/Softwares/priuspilot/cereal/"  # ← replace with actual path
     publish_rate_hz: 35.0
     openpilot_auto_reenable_timeout: 5.0
