@@ -17,8 +17,8 @@
   </export>
 
   <exec_depend>rclpy</exec_depend>
-  <exec_depend>zmq</exec_depend>
-  <exec_depend>capnp</exec_depend>
+  <!-- <exec_depend>zmq</exec_depend> -->
+  <!-- <exec_depend>capnp</exec_depend> -->
 
   <!-- ROS message packages -->
   <exec_depend>tier4_vehicle_msgs</exec_depend>
